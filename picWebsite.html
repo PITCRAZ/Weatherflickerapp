@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>New York Weather</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap');
+
+		:root {
+			--ink: #f7f8f2;
+			--muted: rgba(247, 248, 242, 0.68);
+			--line: rgba(255, 255, 255, 0.18);
+			--panel: rgba(10, 24, 32, 0.58);
+			--accent: #ffcf70;
+			--background-image: url('https://picsum.photos/1920/1080');
+		}
+
+		* { box-sizing: border-box; }
+
+		html, body { min-height: 100%; margin: 0; }
+
+		body {
+			position: relative;
+			min-height: 100vh;
+			padding: clamp(24px, 5vw, 72px);
+			background: #102a35;
+			color: var(--ink);
+			font-family: 'Manrope', sans-serif;
+	}
+
+		body::before {
+			position: fixed;
+			z-index: -2;
+			inset: -28px;
+			content: '';
+			background: var(--background-image) center / cover;
+			filter: blur(1px);
+			transform: scale(1.08);
+		}
+
+		body::after {
+			position: fixed;
+			z-index: -1;
+			inset: 0;
+			content: '';
+			
+		}
+
+		.dashboard { max-width: 1160px; margin: 0 auto; }
+
+		header {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 24px;
+			margin-bottom: 34px;
+		}
+
+		.eyebrow, .label, .updated {
+			font-family: 'DM Mono', monospace;
+			font-size: 0.72rem;
+			letter-spacing: 0.14em;
+			text-transform: uppercase;
+		}
+
+		.eyebrow { margin: 0 0 12px; color: var(--accent); }
+		h1 { margin: 0; font-size: clamp(2.3rem, 5vw, 5rem); line-height: 0.98; letter-spacing: -0.04em; }
+		.updated { margin: 8px 0 0; color: var(--muted); }
+
+		.status {
+			display: flex;
+			align-items: center;
+			gap: 9px;
+			padding-top: 8px;
+			color: var(--muted);
+			font-size: 0.85rem;
+		}
+
+		.status::before { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); content: ''; box-shadow: 0 0 14px var(--accent); }
+
+		.hero {
+			display: grid;
+			grid-template-columns: 1.3fr 0.7fr;
+			gap: 1px;
+			margin-bottom: 1px;
+			border: 1px solid var(--line);
+			background: var(--line);
+			box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+		}
+
+		.hero-main, .hero-side, .metric { background: var(--panel); backdrop-filter: blur(12px); }
+		.hero-main { min-height: 310px; padding: clamp(28px, 5vw, 58px); }
+		.location { margin: 0 0 26px; color: var(--muted); font-size: 1.05rem; }
+		.temperature { display: flex; align-items: flex-start; gap: 15px; }
+		.temperature strong { font-size: clamp(5rem, 13vw, 10rem); line-height: 0.8; letter-spacing: -0.09em; }
+		.temperature span { color: var(--accent); font-size: clamp(1.5rem, 3vw, 2.4rem); font-weight: 700; }
+		.condition { margin: 32px 0 0; font-size: 1.2rem; text-transform: capitalize; }
+		.feels { margin: 7px 0 0; color: var(--muted); }
+		.hero-side { display: grid; place-items: center; padding: 30px; text-align: center; }
+		.weather-icon { width: 120px; height: 120px; }
+		.icon-caption { margin: 14px 0 0; color: var(--muted); }
+
+		.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); }
+		.metric { min-height: 142px; padding: 24px; }
+		.label { display: block; margin-bottom: 18px; color: var(--muted); }
+		.value { font-size: 1.45rem; font-weight: 700; }
+		.value small { color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+
+		footer { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 1px; background: var(--line); }
+		footer .metric { min-height: 112px; }
+		.error { display: none; padding: 18px; border: 1px solid #ff8d7c; color: #ffd5ce; background: rgba(86, 21, 18, 0.7); }
+
+		@media (max-width: 720px) {
+			body { padding: 24px 16px; }
+			header { display: block; margin-bottom: 24px; }
+			.status { padding-top: 20px; }
+			.hero { grid-template-columns: 1fr; }
+			.hero-main { min-height: 260px; }
+			.hero-side { min-height: 190px; }
+			.metrics, footer { grid-template-columns: repeat(2, 1fr); }
+		}
+	</style>
+</head>
+<body>
+	<main class="dashboard">
+		<header>
+			<div>
+				<p class="eyebrow">Live conditions · OpenWeather</p>
+				<h1 id="city">New York</h1>
+				<p class="updated" id="updated">Loading current conditions...</p>
+			</div>
+			<div class="status">Live update</div>
+		</header>
+
+		<section class="hero" aria-label="Current weather">
+			<div class="hero-main">
+				<p class="location" id="coordinates">40.7128° N · 74.0060° W</p>
+				<div class="temperature"><strong id="temperature">--</strong><span>°F</span></div>
+				<p class="condition" id="condition">Fetching weather...</p>
+				<p class="feels">Feels like <span id="feelsLike">--</span>°F</p>
+			</div>
+			<div class="hero-side">
+				<img class="weather-icon" id="weatherIcon" src="" alt="">
+				<p class="icon-caption" id="weatherId">OpenWeather conditions</p>
+			</div>
+		</section>
+
+		<section class="metrics" aria-label="Weather details">
+			<div class="metric"><span class="label">High / low</span><div class="value"><span id="high">--</span>° / <span id="low">--</span>° <small>°F</small></div></div>
+			<div class="metric"><span class="label">Humidity</span><div class="value"><span id="humidity">--</span><small>%</small></div></div>
+			<div class="metric"><span class="label">Visibility</span><div class="value"><span id="visibility">--</span> <small>mi</small></div></div>
+			<div class="metric"><span class="label">Cloud cover</span><div class="value"><span id="clouds">--</span><small>%</small></div></div>
+		</section>
+
+		<footer aria-label="Additional weather details">
+			<div class="metric"><span class="label">Wind</span><div class="value"><span id="wind">--</span> <small>mph</small></div></div>
+			<div class="metric"><span class="label">Pressure</span><div class="value"><span id="pressure">--</span> <small>hPa</small></div></div>
+			<div class="metric"><span class="label">Sunrise</span><div class="value" id="sunrise">--</div></div>
+			<div class="metric"><span class="label">Sunset</span><div class="value" id="sunset">--</div></div>
+		</footer>
+		<p class="error" id="error">Unable to load weather data. Check your connection or API key.</p>
+	</main>
+
+	<script>
+		const apiKey = '3236efad6f850917b6fe4acb9137bec8';
+		const latitude = 40.7128;
+		const longitude = -74.0060;
+		const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=imperial`;
+
+		const setText = (id, value) => { document.getElementById(id).textContent = value; };
+		const formatTime = (timestamp, timezone) => new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).format(new Date((timestamp + timezone) * 1000));
+		const refreshBackground = () => {
+			document.body.style.setProperty('--background-image', `url('https://picsum.photos/1920/1080?refresh=${Date.now()}')`);
+		};
+
+		async function loadWeather() {
+			try {
+				const response = await fetch(weatherUrl);
+				if (!response.ok) throw new Error('Weather request failed');
+				const data = await response.json();
+				const condition = data.weather[0];
+				setText('city', `${data.name}, ${data.sys.country}`);
+				setText('updated', `Updated ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`);
+				setText('coordinates', `${Math.abs(data.coord.lat).toFixed(4)}° ${data.coord.lat >= 0 ? 'N' : 'S'} · ${Math.abs(data.coord.lon).toFixed(4)}° ${data.coord.lon >= 0 ? 'E' : 'W'}`);
+				setText('temperature', Math.round(data.main.temp));
+				setText('feelsLike', Math.round(data.main.feels_like));
+				setText('condition', condition.description);
+				setText('weatherId', `Condition ${condition.id} · ${condition.main}`);
+				setText('high', Math.round(data.main.temp_max));
+				setText('low', Math.round(data.main.temp_min));
+				setText('humidity', data.main.humidity);
+				setText('visibility', data.visibility ? (data.visibility / 1609.34).toFixed(1) : 'N/A');
+				setText('clouds', data.clouds.all);
+				setText('wind', Math.round(data.wind.speed));
+				setText('pressure', data.main.pressure);
+				setText('sunrise', formatTime(data.sys.sunrise, data.timezone));
+				setText('sunset', formatTime(data.sys.sunset, data.timezone));
+				const icon = document.getElementById('weatherIcon');
+				icon.src = `https://openweathermap.org/img/wn/${condition.icon}@4x.png`;
+				icon.alt = condition.description;
+			} catch (error) {
+				document.getElementById('error').style.display = 'block';
+				setText('condition', 'Weather unavailable');
+			}
+		}
+
+		refreshBackground();
+		setInterval(refreshBackground, 15000);
+		loadWeather();
+	</script>
+</body>
+</html>
